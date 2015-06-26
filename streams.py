@@ -5,10 +5,10 @@ from datetime import datetime
 from collections import Counter
 from threading import Timer
 
-consumer_key = 'U8gXzQYoQYNf2ghJ5hA9hIayA'
-consumer_secret = 'nuJGk0OArFUCpN48kInSOXO9zTWo4bBmJt8ZO5qZyCreFTQwdv'
-access_token = '551108705-WisOnqL21cTgggfXnrJjSvJRznPaBXtnn4SDU5yt'
-access_token_secret = 'XcgqlS3NrmXdCTbfgroGut382gLFcYxXtC98c8vQZ51sW'
+consumer_key = 'insert consumer_key'
+consumer_secret = 'insert consumer_secret'
+access_token = 'insert access_token'
+access_token_secret = 'insert access_token_secret'
 
 dict = {}
 time_then = datetime.now()
