@@ -164,7 +164,8 @@ if __name__ == '__main__':
    except KeyboardInterrupt:
          
          for thread in threads:
-            print thread
+            if thread.isAlive():
+               thread.join()
 
          stream.disconnect()
          print "\n\n*** Bye ***\n\n"
