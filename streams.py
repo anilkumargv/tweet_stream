@@ -1,14 +1,14 @@
 import tweepy
 import json
-import MySQLdb
+import time
 from datetime import datetime
 from collections import Counter
 from threading import Timer
 
-consumer_key = 'insert consumer_key'
-consumer_secret = 'insert consumer_secret'
-access_token = 'insert access_token'
-access_token_secret = 'insert access_token_secret'
+consumer_key = 'U8gXzQYoQYNf2ghJ5hA9hIayA'
+consumer_secret = 'nuJGk0OArFUCpN48kInSOXO9zTWo4bBmJt8ZO5qZyCreFTQwdv'
+access_token = '551108705-WisOnqL21cTgggfXnrJjSvJRznPaBXtnn4SDU5yt'
+access_token_secret = 'XcgqlS3NrmXdCTbfgroGut382gLFcYxXtC98c8vQZ51sW'
 
 dict = {}
 time_then = datetime.now()
@@ -25,6 +25,9 @@ class StdOutListener(tweepy.StreamListener):
       # loading the json data into 'decoded' variable
       decoded = json.loads(data)
       
+      if not decoded.get('user'):
+         return True
+
       time_now = datetime.now()
       
       user = str(decoded['user']['screen_name'])
@@ -96,13 +99,17 @@ if __name__ == '__main__':
       auth.set_access_token(access_token, access_token_secret)
 
       print "\nShowing all new tweets for '" + word + "'\n"   
+      
+      threads = []
+
       # Separate thread to print the data every 60 seconds
       def print_every_min():
          try:
             timer = Timer(60,print_every_min)
             timer.daemon = True
             timer.start()
-            
+            threads.append(timer)
+
             global total_links
             global domains
             global unique_words
@@ -142,12 +149,23 @@ if __name__ == '__main__':
             print "\n\n **** Bye **** \n\n"
          
       print_every_min()
+      while True:
+         try:   
+            stream = tweepy.Stream(auth, l)
+            stream.filter(track=[word])
+
+         except KeyboardInterrupt:
+            break
          
-      stream = tweepy.Stream(auth, l)
-      stream.filter(track=[word])
-   
-
+         except :
+            print "Reconnecting..."
+            time.sleep(2)
+         
    except KeyboardInterrupt:
+         
+         for thread in threads:
+            print thread
 
+         stream.disconnect()
          print "\n\n*** Bye ***\n\n"
 
