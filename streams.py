@@ -60,17 +60,11 @@ class StdOutListener(tweepy.StreamListener):
       
       #update the user details if already exists or create new dictionary item 
       try:
-         dict[user][0] += 1
-         dict[user][1] = time_now
-         if url_exp_list :
-            for u in url_exp_list:
-               dict[user][2].append(u)
-         if words :
-            for word in words:
-               dict[user][3].append(word)
+         item_list = [time_now,url_exp_list,words]
+         dict[user].append(item_list)
       
       except KeyError:
-         dict[user] = [1,time_now,url_exp_list,words]
+         dict[user] = [[time_now,url_exp_list,words],]
 
       except:
          print "not possible"
@@ -109,27 +103,42 @@ if __name__ == '__main__':
             timer.daemon = True
             timer.start()
             threads.append(timer)
-
+               
             global total_links
             global domains
             global unique_words
             
             ti_now = datetime.now()
             for entry in dict.keys():
-               diff = divmod((ti_now - (dict[entry][1])).total_seconds(),60)
-               td = (diff[0]*60)+ diff[1]
-               #print td
-               if td <= 300:
-                  print entry, dict[entry][0]
-                  total_links += len(dict[entry][2])
-                  for u in dict[entry][2]:
-                     domains.append(u)
-                  for w in dict[entry][3]:
-                     unique_words.append(w)
+               no_of_times = 0
+               index_to_del = []
+               for i in xrange(0,len(dict[entry])):
+                  diff = divmod((ti_now - (dict[entry][i][0])).total_seconds(),60)
+                  td = (diff[0]*60)+ diff[1]
+                  #print td
+                  if td <= 300:
 
-               else:
+                     no_of_times += 1
+                     total_links += len(dict[entry][i][1])
+                     for u in dict[entry][i][1]:
+                        domains.append(u)
+                     for w in dict[entry][i][2]:
+                        unique_words.append(w)
+                  
+                  # make a list of indeces to delete from user entry
+                  else:
+                     index_to_del.append(i)
+
+               # modify the user entry to hold the values only inside 5 minutes
+               dict[entry][:] = [dict[entry][i] for i in xrange(0,len(dict[entry])) if i not in index_to_del]
+               
+               # if no tweets from a user in last 5 miutes delete the entry
+               if no_of_times == 0:
                   del dict[entry]
-
+               
+               else:   
+                  print entry , no_of_times
+            
             print "\n"
             print "total number of links posted by the same users in the last 5 minutes is : {0}".format(total_links)
             print "\n"
@@ -146,15 +155,17 @@ if __name__ == '__main__':
             unique_words = []
                   
          except TypeError:
-            print "\n\n **** Bye **** \n\n"
-         
+            print " TypeError occurred"
+            
       print_every_min()
+
       while True:
          try:   
             stream = tweepy.Stream(auth, l)
             stream.filter(track=[word])
 
          except KeyboardInterrupt:
+            raise KeyboardInterrupt
             break
          
          except :
@@ -163,10 +174,9 @@ if __name__ == '__main__':
          
    except KeyboardInterrupt:
          
-         for thread in threads:
-            if thread.isAlive():
-               thread.join()
-
          stream.disconnect()
+         for thread in threads:
+            thread.cancel()
+
          print "\n\n*** Bye ***\n\n"
 
